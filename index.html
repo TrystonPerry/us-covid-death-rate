@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js" integrity="sha512-d9xgZrVZpmmQlfonhQUvTR7lMPtO7NkZMkA0ABN3PHCbKA5nqylQ/yWlFAyY6hYgdF1Qh6nYiuADWwKB4C2WSw==" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div style="padding:1rem; max-width:1200px;margin:0 auto">
+    <h1>COVID-19 U.S. Death Rate</h1> 
+    <canvas id="myChart" width="1280" height="720"></canvas>
+  </div>
+
+  <script>
+    let covidData = {
+      labels: [],
+      datasets: [{
+        backgroundColor: "rgba(52, 183, 235, 1)",
+        label: "Death Rate",
+        data: []
+      }]
+    }
+
+    async function getData() {
+      const res = await fetch("https://api.covidtracking.com/v1/us/daily.json")
+
+      if (!res.ok) {
+        alert(`Error fetching COVID data: ${res.status} ${res.error || res.err}`)
+        return
+      }
+
+      const days = (await res.json()).reverse()
+
+      for (const day of days) {
+        covidData.labels.push(day.date)
+        covidData.datasets[0].data.push(((day.death / day.positive) * 100).toFixed(2))
+      }
+
+      var ctx = new Chart(document.getElementById("myChart"), {
+        type: "line",
+        data: covidData,
+      })
+    }
+
+    getData()
+  </script>
+</body>
+</html>

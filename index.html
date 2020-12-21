@@ -4,20 +4,84 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js" integrity="sha512-d9xgZrVZpmmQlfonhQUvTR7lMPtO7NkZMkA0ABN3PHCbKA5nqylQ/yWlFAyY6hYgdF1Qh6nYiuADWwKB4C2WSw==" crossorigin="anonymous"></script>
 </head>
 <body>
   <div style="padding:1rem; max-width:1200px;margin:0 auto">
-    <h1>COVID-19 U.S. Death Rate</h1> 
-    <canvas id="myChart" width="1280" height="720"></canvas>
+    <h1 style="display:flex;align-items:center">
+      <img src="https://lh3.googleusercontent.com/proxy/2cIQc_jQsR4Swb9G7e40WuxTBS4qh0ti7ARmYK0OO_YvYrt7OiJmLyUjJZV-ZO5rDJyQllXzAFByFKD3XZOV6LOOSKPfWmeoILE5D0B5cqhzfo39sw" style="width:64px" alt="">
+      <span style="padding-left:1rem">U.S. COVID-19 Stats Graphed</span>
+    </h1> 
+    <p>
+      Data is provided from <a href="https://covidtracking.com/">CovidTracking.com</a>. Almost all of the data they compile is taken directly from the websites of state/territory public health authorities. See <a href="https://covidtracking.com/about-data/sources">their data</a> sources page for more information.
+    </p>    
+
+    <!-- Charts -->
+    <div class="container">
+      <h2>Total COVID-19 Death Rate</h2>
+      <p>(total deaths / total cases) * 100</p>
+      <canvas id="death-rate-total" width="1280" height="720"></canvas>
+    </div>
+    <canvas id="death-rate-daily" width="1280" height="720"></canvas>
+    <canvas id="negative-tests-total" width="1280" height="720"></canvas>
+    <canvas id="negative-tests-daily" width="1280" height="720"></canvas>
+    <canvas id="hospitalized-daily" width="1280" height="720"></canvas>
+
+    <p>Created by <a href="https://tryston.net">Tryston</a></p>
   </div>
 
   <script>
-    let covidData = {
+    const deathRateTotal = {
       labels: [],
       datasets: [{
         backgroundColor: "rgba(52, 183, 235, 1)",
-        label: "Death Rate",
+        label: "Total Death Rate",
+        data: []
+      }]
+    }
+
+    const deathRateDaily = {
+      labels: [],
+      datasets: [{
+        backgroundColor: "rgba(52, 183, 235, 1)",
+        label: "Daily Death Rate",
+        data: []
+      }]
+    }
+
+    const negativeTestsTotal = {
+      labels: [],
+      datasets: [{
+        backgroundColor: "rgba(52, 183, 235, 1)",
+        label: "Total Negative Tests",
+        data: []
+      }]
+    }
+
+    const negativeTestsDaily = {
+      labels: [],
+      datasets: [{
+        backgroundColor: "rgba(52, 183, 235, 1)",
+        label: "Daily Negative Tests",
+        data: []
+      }]
+    }
+
+    const inICU = {
+
+    }
+
+    const onVentilator = {
+
+    }
+
+    const hospitalizedDaily = {
+      labels: [],
+      datasets: [{
+        backgroundColor: "rgba(52, 183, 235, 1)",
+        label: "Total People Hospitalized On Given Day",
         data: []
       }]
     }
@@ -33,17 +97,53 @@
       const days = (await res.json()).reverse()
 
       for (const day of days) {
-        covidData.labels.push(day.date)
-        covidData.datasets[0].data.push(((day.death / day.positive) * 100).toFixed(2))
+        let date = day.date.toString()
+        date = `${date.substr(4,2)}/${date.substr(6,2)}/${date.substr(0, 4)}`
+        deathRateTotal.labels.push(date)
+        deathRateTotal.datasets[0].data.push(((day.death / day.positive) * 100).toFixed(2))
+
+        deathRateDaily.labels.push(date)
+        deathRateDaily.datasets[0].data.push(((day.deathIncrease / day.positiveIncrease) * 100).toFixed(2))
+
+        negativeTestsTotal.labels.push(date)
+        negativeTestsTotal.datasets[0].data.push(day.negative)
+
+        negativeTestsDaily.labels.push(date)
+        negativeTestsDaily.datasets[0].data.push(day.negativeIncrease)
+
+        hospitalizedDaily.labels.push(date)
+        hospitalizedDaily.datasets[0].data.push(day.hospitalizedCurrently)
       }
 
-      var ctx = new Chart(document.getElementById("myChart"), {
+      var ctx = new Chart(document.getElementById("death-rate-total"), {
         type: "line",
-        data: covidData,
+        data: deathRateTotal,
+      })
+      var ctx = new Chart(document.getElementById("death-rate-daily"), {
+        type: "line",
+        data: deathRateDaily,
+      })
+      var ctx = new Chart(document.getElementById("negative-tests-total"), {
+        type: "line",
+        data: negativeTestsTotal,
+      })
+      var ctx = new Chart(document.getElementById("negative-tests-daily"), {
+        type: "line",
+        data: negativeTestsDaily,
+      })
+      var ctx = new Chart(document.getElementById("hospitalized-daily"), {
+        type: "line",
+        data: hospitalizedDaily,
       })
     }
 
     getData()
   </script>
+
+  <style>
+    * {
+      font-family: "Montserrat";
+    }
+  </style>
 </body>
 </html>
